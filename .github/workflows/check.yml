@@ -1,0 +1,42 @@
+name: Check slots
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [check_slots]
+
+jobs:
+  check-slots:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+
+      - name: Restore State Cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .cache
+          key: cache-v1
+          restore-keys: |
+            cache-v1
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Run Bot
+        run: pnpm start
+        env:
+          BASE_API_URL: ${{ secrets.BASE_API_URL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+      - name: Save State Cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .cache
+          key: cache-v1
